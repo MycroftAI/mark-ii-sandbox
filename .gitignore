@@ -5,3 +5,4 @@ tmp/
 
 *.tar
 *.img
+*.img.gz
