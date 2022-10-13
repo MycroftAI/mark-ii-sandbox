@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# Copyright 2022 Mycroft AI Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# -----------------------------------------------------------------------------
+#
+# Sets the LEDs on the Mark II to the specified colors.
+#
+# Example: mark2-leds R1,G1,B1,R2,G2,B2 [brightness]
+#
+# Colors are cycled if missing, so R1,G1,B1,R2,G2,B2 will be
+# R1,G1,B1,R2,G2,B2,R1,G1,B1,R2,G2,B2 ... for all LEDs.
+#
+# Brightness is 0-100
+
+rgb="$1"
+brightness="$2"
+
+if [ -z "${rgb}" ]; then
+    echo 'Usage: mark2-leds r1,g1,b1,r2,g2,b2,... [brightness]'
+    exit 1
+fi
+
+dbus-send \
+    --system \
+    --type=method_call \
+    --dest=ai.mycroft.mark2 \
+    /ai/mycroft/mark2/led \
+    org.freedesktop.DBus.Properties.Set \
+    string:ai.mycroft.Mark2LedInterface \
+    string:rgb "variant:string:${rgb}"
+
+if [ -n "${brightness}" ]; then
+    dbus-send \
+        --system \
+        --type=method_call \
+        --dest=ai.mycroft.mark2 \
+        /ai/mycroft/mark2/led \
+        org.freedesktop.DBus.Properties.Set \
+        string:ai.mycroft.Mark2LedInterface \
+        string:brightness "variant:byte:${brightness}"
+fi

@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# Copyright 2022 Mycroft AI Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# -----------------------------------------------------------------------------
+#
+# Monitors the buttons and switches from the Mark II
+#
+
+dbus-monitor 2>/dev/null \
+    --system \
+    "type='signal',sender='ai.mycroft.mark2',interface='ai.mycroft.Mark2ButtonInterface'" | \
+    while read -r line; do
+        if [ -z "${button_name}" ]; then
+            # Need button name
+            if [[ "${line}" =~ path=/ai/mycroft/mark2/button ]]; then
+                # Extract member name
+                if [[ "${line}" =~ member=(.+) ]]; then
+                    button_name="${BASH_REMATCH[1]}"
+                fi
+            fi
+        else
+            # Need button state
+            if [[ "${line}" =~ boolean\ (.+) ]]; then
+                button_state="${BASH_REMATCH[1]}"
+                echo "${button_name} ${button_state}"
+
+                # Clear for next signal
+                button_name=''
+                button_state=''
+            fi
+        fi
+    done

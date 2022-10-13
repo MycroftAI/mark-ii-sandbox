@@ -1,0 +1,1 @@
+cmd_/home/pi/vocalfusion-rpi-setup-5.2.0/loader/i2s_master/modules.order := {   echo /home/pi/vocalfusion-rpi-setup-5.2.0/loader/i2s_master/i2s_master_loader.ko; :; } | awk '!x[$$0]++' - > /home/pi/vocalfusion-rpi-setup-5.2.0/loader/i2s_master/modules.order

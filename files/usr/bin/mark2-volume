@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Copyright 2022 Mycroft AI Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# -----------------------------------------------------------------------------
+#
+# Sets the volume 0 (off) to 100 (max)
+#
+# Example: mark2-volume 60
+
+volume="$1"
+if [ -z "${volume}" ]; then
+    echo 'Usage: mark2-volume volume'
+    exit 1
+fi
+
+dbus-send \
+    --system \
+    --type=method_call \
+    --dest=ai.mycroft.mark2 \
+    /ai/mycroft/mark2/amp \
+    org.freedesktop.DBus.Properties.Set \
+    string:ai.mycroft.Mark2AmpInterface \
+    string:volume "variant:byte:${volume}"

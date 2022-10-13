@@ -1,0 +1,15 @@
+[Unit]
+Description=DBus server for hardware access
+
+[Service]
+Type=notify
+ExecStart=/usr/local/mycroft/mark-2/dbus-hal/.venv/bin/python3 /usr/local/mycroft/mark-2/dbus-hal/dbus_server.py
+Restart=always
+RestartSec=10
+TimeoutStartSec=60
+WatchdogSec=30
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

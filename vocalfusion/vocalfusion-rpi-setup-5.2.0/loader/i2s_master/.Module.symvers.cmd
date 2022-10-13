@@ -1,0 +1,1 @@
+cmd_/home/pi/vocalfusion-rpi-setup-5.2.0/loader/i2s_master/Module.symvers := sed 's/\.ko$$/\.o/' /home/pi/vocalfusion-rpi-setup-5.2.0/loader/i2s_master/modules.order | scripts/mod/modpost -m -a  -o /home/pi/vocalfusion-rpi-setup-5.2.0/loader/i2s_master/Module.symvers -e -i Module.symvers   -T -

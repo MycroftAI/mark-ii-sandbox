@@ -1,0 +1,11 @@
+[Unit]
+Description=Script run on boot after HAL
+After=mark2-hal.service
+
+[Service]
+Type=oneshot
+ExecStartPre=/bin/sleep 5
+ExecStart=/usr/local/mycroft/mark-2/boot.sh
+
+[Install]
+WantedBy=default.target

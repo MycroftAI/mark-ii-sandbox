@@ -1,0 +1,10 @@
+[Unit]
+Description=Script run on boot to set up Mark II microphone and speakers
+
+[Service]
+Type=oneshot
+User=pi
+ExecStart=/usr/local/mycroft/mark-2/run.sh
+
+[Install]
+WantedBy=default.target
