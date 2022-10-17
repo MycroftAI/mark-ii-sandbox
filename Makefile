@@ -15,12 +15,17 @@
 #
 # -----------------------------------------------------------------------------
 
-.PHONY: all
+.PHONY: maker browser
 
 SHELL := bash
 
 DOCKER_PLATFORM ?= linux/arm64
-DOCKER_TAG ?= mycroftai/mark-ii-product
 
-all:
-	docker buildx build . -f Dockerfile --platform $(DOCKER_PLATFORM) --tag $(DOCKER_TAG) --output 'type=tar,dest=mycroft.tar'
+maker:
+	docker buildx build . -f Dockerfile --platform $(DOCKER_PLATFORM) --tag mycroftai/mark-ii-maker --output 'type=tar,dest=mycroft.tar'
+
+browser:
+	docker buildx build . -f Dockerfile.browser --platform $(DOCKER_PLATFORM) --tag mycroftai/mark-ii-browser --output 'type=tar,dest=mycroft.tar'
+
+camera:
+	docker buildx build . -f Dockerfile.camera --platform $(DOCKER_PLATFORM) --tag mycroftai/mark-ii-camera --output 'type=tar,dest=mycroft.tar'

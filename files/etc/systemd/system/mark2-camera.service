@@ -1,0 +1,23 @@
+[Unit]
+Description=X11 session for Mark II
+After=graphical.target systemd-user-sessions.service
+
+[Service]
+User=pi
+WorkingDirectory=/home/pi
+PAMName=login
+Environment=XDG_SESSION_TYPE=x11
+TTYPath=/dev/tty8
+StandardInput=tty
+UnsetEnvironment=TERM
+
+UtmpIdentifier=tty8
+UtmpMode=user
+
+StandardOutput=journal
+ExecStartPre=/usr/bin/chvt 8
+ExecStart=/usr/bin/startx /usr/bin/vlc --no-qt-privacy-ask --fullscreen 'v4l2:///dev/video0:width=800:height=480' -- -nocursor vt8 -keeptty
+Restart=no
+
+[Install]
+WantedBy=graphical.target

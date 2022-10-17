@@ -81,14 +81,9 @@ otg_mode=1
 [all]
 dtoverlay=vc4-fkms-v3d
 start_x=1 
-#dtoverlay=xvf3510
-#force_turbo=1
-#dtparam=sd_poll_once
-#enable_uart=1
-#device_tree_address=0x02000000
+enable_uart=1
+gpu_mem=128
 
 [pi4]
 # Run as fast as firmware / board allows
 arm_boost=1
-
-[all]
