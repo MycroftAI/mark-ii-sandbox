@@ -1,0 +1,163 @@
+# Copyright 2022 Mycroft AI Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# -----------------------------------------------------------------------------
+#
+# Docker build script for Mark II
+#
+# Requires buildkit: https://docs.docker.com/develop/develop-images/build_enhancements/
+# -----------------------------------------------------------------------------
+
+FROM scratch as base
+ADD raspberry-pi-os/p2.tar /
+
+# -----------------------------------------------------------------------------
+
+# Base image with locale set
+FROM base as base-with-locale
+ARG TARGETARCH
+ARG TARGETVARIANT
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Set the locale
+RUN --mount=type=cache,id=apt-base-with-local,target=/var/cache/apt \
+    apt-get update && apt-get install -y locales  \
+	&& localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
+
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
+
+# -----------------------------------------------------------------------------
+
+# Base image for building tools and virtual environments
+FROM base-with-locale as base-build
+
+WORKDIR /build
+
+COPY docker/packages-build.txt docker/packages-venv.txt ./
+RUN --mount=type=cache,id=apt-base-build,target=/var/cache/apt \
+    apt-get update && \
+    cat packages-*.txt | xargs apt-get install --yes --no-install-recommends
+
+# -----------------------------------------------------------------------------
+# Build
+# -----------------------------------------------------------------------------
+
+# Image where Mycroft GUI is built
+# FROM base-build as build-gui
+
+# COPY mycroft-dinkum/services/gui/mycroft-gui/ ./mycroft-gui/
+# COPY docker/build/gui/build-mycroft-gui.sh ./
+# RUN ./build-mycroft-gui.sh
+
+# COPY mycroft-dinkum/services/gui/lottie-qml/ ./lottie-qml/
+# COPY docker/build/gui/build-lottie-qml.sh ./
+# RUN ./build-lottie-qml.sh
+
+# COPY mycroft-dinkum/services/gui/mycroft-gui-mark-2/ ./mycroft-gui-mark-2/
+# COPY docker/build/gui/build-mycroft-gui-mark-2.sh ./
+# RUN ./build-mycroft-gui-mark-2.sh
+
+# -----------------------------------------------------------------------------
+
+FROM base-build as build-core1
+
+COPY docker/packages-core1.txt ./
+RUN --mount=type=cache,id=apt-base-build,target=/var/cache/apt \
+    apt-get update && \
+    cat packages-*.txt | xargs apt-get install --yes --no-install-recommends
+
+# Install Mycroft
+RUN cd /opt && \
+    git clone --single-branch --branch dev 'https://github.com/MycroftAI/mycroft-core.git' mycroft
+
+RUN --mount=type=cache,id=apt-build-core1,target=/var/cache/apt \
+    --mount=type=cache,id=pip-build-core1,target=/root/.cache/pip \
+    cd /opt/mycroft && \
+    CI=true bash dev_setup.sh --allow-root
+
+# -----------------------------------------------------------------------------
+# Run
+# -----------------------------------------------------------------------------
+
+FROM base-with-locale as run
+ARG TARGETARCH
+ARG TARGETVARIANT
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN echo "Dir::Cache var/cache/apt/${TARGETARCH}${TARGETVARIANT};" > /etc/apt/apt.conf.d/01cache
+
+COPY docker/packages-build.txt docker/packages-run.txt ./
+RUN --mount=type=cache,id=apt-build,target=/var/cache/apt \
+    mkdir -p /var/cache/apt/${TARGETARCH}${TARGETVARIANT}/archives/partial && \
+    apt-get update && \
+    cat packages-*.txt | xargs apt-get install --yes --no-install-recommends
+
+# Kernel module and setup scripts
+COPY vocalfusion/app_xvf3510_int_spi_boot_v4_2_0.bin \
+     vocalfusion/run.sh \
+     vocalfusion/setup_microphone.py \
+     vocalfusion/setup_speakers.py \
+     vocalfusion/vocalfusion-rpi-setup-5.2.0/loader/i2s_master/i2s_master_loader.ko \
+     vocalfusion/vocalfusion-rpi-setup-5.2.0/resources/clk_dac_setup/setup_mclk \
+     vocalfusion/vocalfusion-rpi-setup-5.2.0/resources/clk_dac_setup/setup_bclk \
+     /usr/local/mycroft/mark-2/
+
+# ALSA config
+COPY vocalfusion/vocalfusion-rpi-setup-5.2.0/resources/asoundrc_vf_xvf3510_int \
+     /etc/alsa/conf.d/20-xmos.conf
+
+# systemd service
+COPY vocalfusion/etc/mark2-microphone.service \
+     /etc/systemd/system/
+
+# Enable i2c
+RUN echo 'i2c-dev' >> /etc/modules
+
+# Install DBus HAL
+COPY dbus-hal /usr/local/mycroft/mark-2/dbus-hal/
+RUN cd /usr/local/mycroft/mark-2/dbus-hal/ && \
+    ./install.sh
+
+# Copy pre-built GUI files
+# COPY --from=build-gui /usr/local/ /usr/
+# COPY --from=build-gui /usr/lib/aarch64-linux-gnu/qt5/qml/ /usr/lib/aarch64-linux-gnu/qt5/qml/
+
+# Copy core1 code and virtual environment
+COPY --from=build-core1 --chown=pi:pi /opt/mycroft/ /opt/mycroft/
+
+# Copy system files
+COPY files/ /
+COPY files-core1/ /
+
+# Fix permissions
+RUN chmod -R pi:pi /home/pi/
+
+# Enable services
+RUN systemctl enable /etc/systemd/system/mark2-microphone.service && \
+    systemctl enable /etc/systemd/system/mark2-hal.service && \
+    systemctl enable /etc/systemd/system/mark2-boot.service && \
+    systemctl enable /etc/systemd/system/mark2-core1.service && \
+    systemctl enable /etc/systemd/system/mark2-automount.service
+
+# Clean up
+RUN --mount=type=cache,id=apt-build,target=/var/cache/apt \
+    apt-get clean && \
+    apt-get autoremove --yes && \
+    rm -rf /var/lib/apt/ && \
+    rm -f /etc/apt/apt.conf.d/01cache

@@ -1,0 +1,9 @@
+Package: mycroft-mimic3-tts
+Version: ${VERSION}
+Section: utils
+Priority: optional
+Depends: libespeak-ng1,libatomic1,libgomp1,libatlas-base-dev
+Recommends: sox
+Architecture: armhf
+Maintainer: Mycroft AI
+Description: A fast, local, neural text to speech system for Mycroft

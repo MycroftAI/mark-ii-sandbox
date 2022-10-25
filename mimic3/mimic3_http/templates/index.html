@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="Mimic 3 text to speech server">
+        <meta name="author" content="Michael Hansen">
+        <link rel="icon" type="image/png" href="img/favicon.png" />
+
+        <title>Mimic 3</title>
+
+        <!-- Bootstrap core CSS -->
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom styles for this template -->
+        <style>
+         body {
+             padding-top: 0;
+         }
+         @media (min-width: 992px) {
+             body {
+                 padding-top: 0;
+             }
+         }
+
+         #mimic-logo {
+             height: 5rem;
+         }
+
+         #mycroft-logo {
+             height: 2rem;
+             margin-left: auto;
+             margin-right: auto;
+         }
+
+         #privacy {
+             font-size: 1em;
+         }
+
+         summary {
+             font-weight: bold;
+         }
+
+         #ssml-examples {
+             width: 100%;
+             border: 1px solid #888;
+         }
+
+         #ssml-examples tr {
+             border-top: 1px solid #888;
+         }
+         
+         #ssml-examples td {
+             padding: 5px;
+         }
+
+         #audio {
+             width: 100%;
+         }
+        </style>
+    </head>
+
+    <body>
+        <!-- Page Content -->
+        <div id="main" class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                  <h1>
+                    <img id="mimic-logo" src="img/Mimic_color.png" />
+                    Mimic 3
+                  </h1>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col" style="text-align: center">
+                  <a class="btn btn-success" href="https://mycroft.ai/mimic-3-feedback/" title="Leave feedback">Feedback</a>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col">
+                  <textarea id="text" placeholder="Type here..." class="form-control" rows="3" name="text" alt="Text to generate speech from"
+                            {% if max_text_length is not none: %}maxlength="{{ max_text_length }}"{% endif %}></textarea>
+                </div>
+                <div class="col-auto">
+                    <button id="speak-button" name="speak" class="btn btn-lg btn-primary" alt="Generate speech">Speak</button>
+
+                    <br/><br />
+
+                    {% if show_openapi %}
+                    <a href="/openapi/" title="OpenAPI page" target="_blank" class="badge badge-info">API</a>
+                    {% endif %}
+
+                    <a href="https://mycroft-ai.gitbook.io/docs/mycroft-technologies/mimic-tts/coming-soon-mimic-3" title="Mimic 3 documentation" target="_blank" class="badge">Docs</a>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-auto">
+                    <label for="voice-language" title="Voice language">Language:</label>
+                    <select id="voice-language" name="voice-language">
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <label for="voice-name" title="Voice name">Name:</label>
+                    <select id="voice-name" name="voice-name">
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <label for="speaker" title="Name of speaker">Speaker:</label>
+                    <select id="speaker-list" name="speaker">
+                    </select>
+                </div>
+                <div class="col">
+                    <button id="copy-voice" class="btn btn-info btn-sm" title="Copy voice key to clipboard">Copy</button>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-auto">
+                    <label for="audio-target" title="Audio target">Play audio on:</label>
+                    <select id="audio-target" name="audio-target">
+                      <option value="client" selected>Client</value>
+                      <option value="server">Server</value>
+                    </select>
+                </div>
+            </div>
+            <div id="audio-message" class="row mt-3" hidden>
+                <div class="col">
+                    <audio id="audio" preload="none" controls autoplay hidden></audio>
+                    <p id="message"></p>
+                </div>
+            </div>
+            <details class="mt-3">
+              <summary>Advanced Settings</summary>
+                <div class="row mt-2">
+                    <div class="col-3">
+                    <input type="checkbox" id="ssml">
+                    <label class="ml-1" for="ssml">Enable SSML</label>
+                    </div>
+                    <div class="col">
+                      <details>
+                        <summary>More about SSML</summary>
+                        <p>
+                          Process some <a href="https://www.w3.org/TR/speech-synthesis11/" title="SSML standard">Speech Synthesis Markup Language</a> tags in the text above.
+                        </p>
+                        <table id="ssml-examples">
+                          <tr>
+                            <td>
+                              <strong>Examples:</strong>
+                            </td>
+                            <td>
+                              <a href="https://mycroft-ai.gitbook.io/docs/mycroft-technologies/mimic-tts/coming-soon-mimic-3#ssml" title="SSML documentation">Documentation</a>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <tt>&lt;break time=&quot;500ms&quot; /&gt;</tt>
+                            </td>
+                            <td>
+                              Insert pause
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <tt>&lt;prosody volume=&quot;50%&quot;&gt;...&lt;/prosody&gt;</tt>
+                            </td>
+                            <td>
+                              Change volume
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <tt>&lt;prosody rate=&quot;200%&quot;&gt;...&lt;/prosody&gt;</tt>
+                            </td>
+                            <td>
+                              Change speaking rate
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <tt>&lt;voice name=&quot;en_US/vctk_low#p239&quot;&gt;...&lt;/voice&gt;</tt>
+                            </td>
+                            <td>
+                              Change voice
+                            </td>
+                          </tr>
+                        </table>
+                      </details>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-3">
+                        <label for="length-scale" title="VITS length scale (< 1 is faster)">Speaking Rate:</label>
+                        <input type="number" id="length-scale" name="lengthScale" size="5" min="0" max="10" step="0.001" value="1">
+                    </div>
+                    <div class="col">
+                      <details>
+                        <summary>More about speaking rate</summary>
+                        <p>
+                          Controls how fast the voice speaks the text. A value of 1 is the speed of the training dataset. Less than 1 is faster, and more than 1 is slower.
+                        </p>
+                      </details>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-3">
+                        <label for="noise-scale" title="VITS noise parameter (0-1)">Audio Volatility:</label>
+                        <input type="number" id="noise-scale" name="noiseScale" size="5" min="0" max="1" step="0.001" value="0.667">
+                    </div>
+                    <div class="col">
+                      <details>
+                        <summary>More about audio volatility</summary>
+                        <p>
+                          The amount of noise added to the generated audio (0-1). Can help mask audio artifacts from the voice model. Multi-speaker models tend to sound better with a lower amount of noise than single speaker models.
+                        </p>
+                      </details>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-3">
+                        <label for="noise-w" title="VITS noise W parameter (0-1)">Phoneme Volatility:</label>
+                        <input type="number" id="noise-w" name="noiseW" size="5" min="0" max="1" step="0.001" value="0.8">
+                    </div>
+                    <div class="col">
+                      <details>
+                        <summary>More about phoneme volatility</summary>
+                        <p>
+                          The amount of noise used to generate phoneme durations (0-1). Allows for variable speaking cadance, with a value closer to 1 being more variable. Multi-speaker models tend to sound better with a lower amount of phoneme variability than single speaker models.
+                        </p>
+                      </details>
+                    </div>
+                </div>
+            </details>
+
+            <details class="mt-3">
+              <summary>About the Beta</summary>
+                <p>
+                This website hosts a beta version of <a href="https://mycroft-ai.gitbook.io/docs/mycroft-technologies/mimic-tts/coming-soon-mimic-3">Mimic 3</a>, Mycroft's newest text to speech system developed for the <a href="https://mycroft.ai/product/mark-ii/">Mark II</a>.
+                When released, Mimic 3 will be available to run locally on Linux systems like the Raspberry Pi 4.
+                </p>
+                <p>
+                We are interested in <a href="https://mycroft.ai/mimic-3-feedback/" title="Leave feedback">hearing your feedback</a>, especially on the non-English language voices! We hope to improve the quality and accuracy of every voice over time &#128512;
+                </p>
+                <p>
+                Some notes on the performance of Mimic 3 and this website:
+                <ul>
+                    <li>Mimic 3 is running <strong>without</strong> any GPUs (CPU only)</li>
+                    <li>This website is shared among all beta reviewers</li>
+                    <li>Caching is disabled, so each request is synthesized fresh</li>
+                </ul>
+                </p>
+            </details>
+
+            <hr class="mt-5" />
+
+            <div class="row mt-5 justify-content-center">
+              <a href="https://mycroft.ai" title="Mycroft AI">
+                <img id="mycroft-logo" src="img/Mycroft_logo_two_typeonly.png" />
+              </a>
+            </div>
+            <div class="row mt-3 justify-content-center">
+              <a href="https://www.gnu.org/licenses/agpl-3.0.en.html" title="AGPLv3">License</a>
+              &nbsp;
+              &bull;
+              &nbsp;
+              <a href="https://mycroft.ai/embed-terms-of-use/" title="Terms of use">Terms of Use</a>
+            </div>
+            <div class="row mt-3 justify-content-center">
+              <p id="privacy">
+                <strong>Privacy:</strong> this website does not store the text you send or the audio that is synthesized.
+              </p>
+            </div>
+        </div>
+
+        <!-- Bootstrap core JavaScript -->
+        <script>
+         var voicesInfo = {}
+         var isUserText = false
+         var elapsedTime = 0
+
+         function q(selector) {return document.querySelector(selector)}
+         q('#text').focus()
+
+         function do_tts(e) {
+             text = q('#text').value
+             if (text) {
+                 q('#message').textContent = 'Synthesizing...'
+                 q('#speak-button').disabled = true
+                 q('#audio').hidden = true
+                 synthesize(text)
+             }
+             e.preventDefault()
+             return false
+         }
+
+         q('#speak-button').addEventListener('click', do_tts)
+
+         async function synthesize(text) {
+             var voiceName = q('#voice-name')
+             var voice = voiceName.options[voiceName.selectedIndex].value
+
+             var noiseScale = q('#noise-scale').value || '0.667'
+             var noiseW = q('#noise-w').value || '0.8'
+             var lengthScale = q('#length-scale').value || '1.0'
+
+             var speakerList = q('#speaker-list')
+             var speaker = speakerList.options[speakerList.selectedIndex].value
+             if (speaker.length > 0) {
+                 voice = voice + "#" + speaker
+             }
+
+             var ssml = q('#ssml').checked || 'false'
+
+             var audioTarget = q('#audio-target').value || 'client'
+
+             q('#audio-message').hidden = false
+             q('#audio').pause()
+
+             var startTime = performance.now()
+
+             res = await fetch(
+                 'api/tts?text=' + encodeURIComponent(text) +
+                 '&voice=' + encodeURIComponent(voice) +
+                 '&noiseScale=' + encodeURIComponent(noiseScale) +
+                 '&noiseW=' + encodeURIComponent(noiseW) +
+                 '&lengthScale=' + encodeURIComponent(lengthScale) +
+                 '&ssml=' + encodeURIComponent(ssml) +
+                 '&audioTarget=' + encodeURIComponent(audioTarget),
+                 {cache: 'no-cache'})
+
+             if (res.ok) {
+                 blob = await res.blob()
+                 elapsedTime = performance.now() - startTime
+
+                 q('#message').innerHTML = (elapsedTime / 1000).toFixed(3) + ' second(s)'
+                 q('#speak-button').disabled = false
+
+                 if (audioTarget != 'server') {
+                     q('#audio').src = URL.createObjectURL(blob)
+                     q('#audio').hidden = false
+                 }
+             } else {
+                 message = await res.text()
+                 q('#message').textContent = message
+                 q('#speak-button').disabled = false
+             }
+         }
+
+         function langChanged(indexToSelect) {
+             // Called when voice language is changed
+
+             // If set, select a specific language by index
+             indexToSelect = indexToSelect === undefined ? -1 : indexToSelect
+             
+             var voiceLang = q('#voice-language')
+
+             // Reset names
+             var voiceName = q('#voice-name')
+             for (var i = voiceName.options.length - 1; i >= 0; i--) {
+                 voiceName.options[i].remove()
+             }
+
+             if (indexToSelect >= 0) {
+                 // Select specific language
+                 voiceLang.selectedIndex = indexToSelect
+             }
+
+             var selectedLang = voiceLang.options[voiceLang.selectedIndex].value
+             var nameIndexToSelect = -1
+
+             Object.values(voicesInfo).forEach(function(voice) {
+                 if (voice.language == selectedLang) {
+                     voiceName.insertAdjacentHTML(
+                         'beforeend', '<option value="' + voice.key + '">' + voice.name + '</option>'
+                     )
+
+                     if ((indexToSelect >= 0) && (voice.key == '{{ default_voice }}')) {
+                         // Record voice name index to select
+                         nameIndexToSelect = voiceName.options.length - 1                         
+                     }
+                 }
+             })
+                 
+             // Trigger voice name change
+             nameChanged(nameIndexToSelect)
+         }
+
+         function nameChanged(indexToSelect) {
+             // Called when voice name is changed
+
+             // If set, select a specific voice by index
+             indexToSelect = indexToSelect === undefined ? -1 : indexToSelect
+
+             var voiceName = q('#voice-name')
+
+             // Reset audio
+             q('#audio-message').hidden = true
+             q('#message').textContent = ''
+             q('#audio').hidden = true
+             q('#audio').autoplay = true
+
+             // Reset speakers
+             var speakerList = q('#speaker-list')
+             for (var i = speakerList.options.length - 1; i >= 0; i--) {
+                 speakerList.options[i].remove()
+             }
+
+             if (indexToSelect >= 0) {
+                 // Select a specific voice by index
+                 voiceName.selectedIndex = indexToSelect
+             }
+
+             var voiceKey = voiceName.options[voiceName.selectedIndex].value
+             var voice = voicesInfo[voiceKey]
+
+             if (voice.speakers && voice.speakers.length > 0) {
+                 voice.speakers.forEach(function(speaker) {
+                    speakerList.insertAdjacentHTML(
+                        'beforeend', '<option value="' + speaker + '">' + speaker + '</option>'
+                    )
+                 })
+                 
+             } else {
+                 // Add default speaker
+                speakerList.insertAdjacentHTML(
+                    'beforeend', '<option value="">default</option>'
+                )
+             }
+
+             var textArea = q('#text')
+             if ((textArea.value.length == 0) || !isUserText) {
+                 textArea.value = voice.sample_text
+                 isUserText = false
+             }
+
+             // Update inference settings
+             if (voice.properties) {
+                 q('#length-scale').value = voice.properties.length_scale || 1.0
+                 q('#noise-scale').value = voice.properties.noise_scale || 0.667
+                 q('#noise-w').value = voice.properties.noise_w || 0.8
+             }
+         }
+
+         function loadVoices() {
+             voicesInfo = {}
+
+             // Remove previous voices
+             var voiceLang = q('#voice-language')
+             for (var i = voiceLang.options.length - 1; i >= 0; i--) {
+                 voiceLang.options[i].remove()
+             }
+
+             var voiceName = q('#voice-name')
+             for (var i = voiceName.options.length - 1; i >= 0; i--) {
+                 voiceName.options[i].remove()
+             }
+
+             var langs = new Set();
+
+             fetch('api/voices')
+                 .then(function(res) {
+                     if (!res.ok) throw Error(res.statusText)
+                     return res.json()
+                 }).then(function(voices) {
+                     voicesInfo = {}
+
+                     // Populate select
+                     var indexToSelect = -1
+
+                     voices.forEach(function(voice) {
+                         voicesInfo[voice.key] = voice
+                         if (!langs.has(voice.language)) {
+                             voiceLang.insertAdjacentHTML(
+                                 'beforeend', '<option value="' + voice.language + '" title="' + voice.language_english + '">' + voice.language_native + '</option>'
+                             )
+                             langs.add(voice.language)                            
+                         }
+
+                         if (voice.key == '{{ default_voice }}') {
+                             indexToSelect = voiceLang.options.length - 1
+                         }
+                     })
+
+                     langChanged(indexToSelect)
+                 }).catch(function(err) {
+                     q('#message').textContent = 'Error: ' + err.message
+                     q('#speak-button').disabled = false
+                 })
+         }
+
+         function copyVoiceKey() {
+             var voiceName = q('#voice-name')
+             var speakerList = q('#speaker-list')
+
+             var voiceKey = voiceName.options[voiceName.selectedIndex].value
+             if (speakerList.options.length > 1) {
+                 voiceKey += '#' + speakerList.options[speakerList.selectedIndex].value
+             }
+              
+
+             navigator.clipboard.writeText(voiceKey)
+         }
+
+         function textChanged() {
+             isUserText = true
+         }
+
+        function audioMetadataLoaded() {
+            var duration = q('#audio').duration
+            var rtf = (elapsedTime / 1000) / duration
+            q('#message').innerHTML += '&nbsp;&bull;&nbsp;<a href="https://mycroft-ai.gitbook.io/docs/mycroft-technologies/mimic-tts/coming-soon-mimic-3#real-time-factor" title="Real-time factor">RTF</a> = ' + rtf.toFixed(4)
+        }
+
+         window.addEventListener('load', function() {
+             loadVoices()
+
+             q('#voice-language').addEventListener('change', langChanged)
+             q('#voice-name').addEventListener('change', nameChanged)
+
+             q('#copy-voice').addEventListener('click', copyVoiceKey)
+             q('#text').addEventListener('change', textChanged)
+             q('#audio').addEventListener('loadedmetadata', audioMetadataLoaded)
+         })
+        </script>
+
+    </body>
+
+</html>

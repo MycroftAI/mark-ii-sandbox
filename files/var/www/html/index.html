@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Mycroft Mark II">
+    <meta name="author" content="Mycroft AI">
+
+    <title>Mycroft Mark II</title>
+    <style>
+      body {
+          background-image: url("img/mycroft800x480.png");
+          background-repeat: no-repeat;
+          background-color: black;
+          color: white;
+          overflow: none;
+          padding: 0;
+          margin: 0;
+          scrollbar-width: none;
+      }
+
+      #reload {
+          position: absolute;
+          top: 0.5rem;
+          right: 0.5rem;
+          font-size: 1.5rem;
+      }
+
+      #speakerTest {
+          position: absolute;
+          bottom: 0;
+          width: 100%;
+      }
+
+      #info {
+          position: absolute;
+          left: 0.5rem;
+          top: 0.5rem;
+          font-size: 1.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="reload" onclick="window.location.reload();">Reload</button>
+    <audio id="speakerTest" src="media/apope-im_sorry_dave.wav" controls></audio>
+
+    <div id="info" x-data="mark2">
+      Mute: <span id="buttonMute"></span>
+      <br />
+      Action: <span x-text="buttons.action"></span>
+      <br />
+      Volume Up: <span id="buttonVolumeUp"></span>
+      <br />
+      Volume Down: <span id="buttonVolumeDown"></span>
+      <br />
+    </div>
+
+    <script type="text/javascript">
+      var mark2 = {
+          buttons: {
+              action: 0,
+              volume_up: 0,
+              volume_down: 0,
+              mute: 0,
+          }
+      };
+      
+      document.addEventListener("alpine:init", () => {
+          Alpine.data("mark2", () => mark2)
+      });
+      
+      function q(selector) {
+          return document.querySelector(selector);
+      }
+
+      var client = null;
+      window.addEventListener("load", function() {
+          client = new Paho.MQTT.Client(location.hostname, 9001, "browser");
+          client.onConnectionLost = onConnectionLost;
+          client.onMessageArrived = onMessageArrived;
+          client.connect({onSuccess:onConnect});
+      });
+
+      function onConnect() {
+          // Once a connection has been made, make a subscription and send a message.
+          // console.log("onConnect");
+          client.subscribe("mark2/#");
+          // message = new Paho.MQTT.Message("Hello");
+          // message.destinationName = "World";
+          // client.send(message);
+      }
+
+      function onConnectionLost(responseObject) {
+          // Reconnect
+          client.connect({onSuccess:onConnect});
+      }
+
+      function onMessageArrived(message) {
+          if (message.destinationName == "mark2/button") {
+              data = JSON.parse(message.payloadString);
+              console.log(data.state);
+              if (data.state == "off") {
+                  mark2.buttons[data.name]++;
+                  console.log(mark2.buttons[data.name]);
+              }
+          }
+      }
+    </script>
+    <script src="js/mqttws31.min.js" type="text/javascript"></script>
+    <script src="js/alpinejs.min.js" type="text/javascript"></script>
+  </body>
+</html>

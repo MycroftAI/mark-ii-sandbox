@@ -5,4 +5,4 @@ unit: sectors
 sector-size: 512
 
 2022-09-22-raspios-bullseye-arm64-lite.img1 : start=        8192, size=      524288, type=c
-2022-09-22-raspios-bullseye-arm64-lite.img2 : start=      532480, size=     3391488, type=83
+2022-09-22-raspios-bullseye-arm64-lite.img2 : start=      532480, size=     10174464, type=83

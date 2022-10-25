@@ -15,14 +15,20 @@
 #
 # -----------------------------------------------------------------------------
 
-.PHONY: maker browser
+.PHONY: dinkum core1 diy browser camera
 
 SHELL := bash
 
 DOCKER_PLATFORM ?= linux/arm64
 
-maker:
-	docker buildx build . -f Dockerfile --platform $(DOCKER_PLATFORM) --tag mycroftai/mark-ii-maker --output 'type=tar,dest=mycroft.tar'
+dinkum:
+	docker buildx build . -f Dockerfile.dinkum --platform $(DOCKER_PLATFORM) --tag mycroftai/mark-ii-dinkum --output 'type=tar,dest=mycroft.tar'
+
+core1:
+	docker buildx build . -f Dockerfile.core1 --platform $(DOCKER_PLATFORM) --tag mycroftai/mark-ii-core1 --output 'type=tar,dest=mycroft.tar'
+
+diy:
+	docker buildx build . -f Dockerfile.diy --platform $(DOCKER_PLATFORM) --tag mycroftai/mark-ii-diy --output 'type=tar,dest=mycroft.tar'
 
 browser:
 	docker buildx build . -f Dockerfile.browser --platform $(DOCKER_PLATFORM) --tag mycroftai/mark-ii-browser --output 'type=tar,dest=mycroft.tar'

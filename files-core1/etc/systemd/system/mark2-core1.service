@@ -1,0 +1,14 @@
+[Unit]
+Description=Mycroft Core 1
+After=mark2-microphone mark2-hal
+
+[Service]
+Type=forking
+User=pi
+WorkingDirectory=/opt/mycroft
+ExecStart=/opt/mycroft/start-mycroft.sh all
+ExecStartPost=/usr/bin/sleep 30 && /opt/mycroft/start-mycroft.sh restart voice
+ExecStop=/opt/mycroft/stop-mycroft.sh
+
+[Install]
+WantedBy=default.target

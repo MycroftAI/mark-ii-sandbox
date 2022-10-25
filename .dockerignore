@@ -1,5 +1,11 @@
 *
 !raspberry-pi-os/p2.tar
+!mycroft-dinkum/
+!mimic3/
+!mimic3-cpp/
 !vocalfusion/
-!dbus-hal
-!files
+!dbus-hal/
+!files/
+!files-core1/
+!docker/
+!.git/

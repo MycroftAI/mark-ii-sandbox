@@ -28,7 +28,8 @@ set -ex pipefail
 
 this_dir="$( cd "$( dirname "$0" )" && pwd )"
 
-custom_image_bytes=4096
+# custom_image_bytes=4096
+custom_image_bytes=8192
 image="${this_dir}/custom.img"
 pi_dir="${this_dir}/raspberry-pi-os"
 

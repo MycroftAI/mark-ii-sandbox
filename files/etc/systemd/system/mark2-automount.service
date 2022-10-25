@@ -1,0 +1,8 @@
+[Unit]
+Description=Automount USB drives with udisks2
+
+[Service]
+ExecStart=/usr/bin/udisks-automount.sh
+
+[Install]
+WantedBy=default.target

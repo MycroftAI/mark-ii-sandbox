@@ -1,0 +1,6 @@
+[KDE]
+LookAndFeelPackage=org.mycroft.mark2
+font=Noto Sans,14,-1,5,50,0,0,0,0,0
+
+[Icons]
+Theme=Mark2
