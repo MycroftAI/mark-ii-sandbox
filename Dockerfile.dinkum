@@ -267,7 +267,7 @@ RUN gunzip --keep /opt/mycroft-dinkum/.venv/lib/python3.9/site-packages/mycroft_
 COPY files/ /
 
 # Fix permissions
-RUN chmod -R pi:pi /home/pi/
+RUN chown -R pi:pi /home/pi/
 
 # Enable services
 COPY --from=build-dinkum /etc/systemd/system/dinkum* /etc/systemd/system/

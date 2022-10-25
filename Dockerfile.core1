@@ -146,7 +146,7 @@ COPY files/ /
 COPY files-core1/ /
 
 # Fix permissions
-RUN chmod -R pi:pi /home/pi/
+RUN chown -R pi:pi /home/pi/
 
 # Enable services
 RUN systemctl enable /etc/systemd/system/mark2-microphone.service && \
