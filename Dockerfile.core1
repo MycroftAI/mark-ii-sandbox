@@ -102,7 +102,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN echo "Dir::Cache var/cache/apt/${TARGETARCH}${TARGETVARIANT};" > /etc/apt/apt.conf.d/01cache
 
-COPY docker/packages-build.txt docker/packages-run.txt ./
+COPY docker/packages-build.txt docker/packages-run.txt docker/packages-core1.txt ./
 RUN --mount=type=cache,id=apt-build,target=/var/cache/apt \
     mkdir -p /var/cache/apt/${TARGETARCH}${TARGETVARIANT}/archives/partial && \
     apt-get update && \

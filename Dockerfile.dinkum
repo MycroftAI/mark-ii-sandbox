@@ -203,6 +203,17 @@ RUN scripts/generate-systemd-units.py \
         --skill skills/weather.mark2
 
 # -----------------------------------------------------------------------------
+
+# Image where XMOS/HAL services are built
+FROM base-build as build-hal
+
+COPY dbus-hal /usr/local/mycroft/mark-2/dbus-hal/
+
+RUN --mount=type=cache,id=pip-build-hal,target=/root/.cache/pip \
+    cd /usr/local/mycroft/mark-2/dbus-hal/ && \
+    ./install.sh
+
+# -----------------------------------------------------------------------------
 # Run
 # -----------------------------------------------------------------------------
 
@@ -214,7 +225,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN echo "Dir::Cache var/cache/apt/${TARGETARCH}${TARGETVARIANT};" > /etc/apt/apt.conf.d/01cache
 
-COPY docker/packages-build.txt docker/packages-run.txt ./
+COPY docker/packages-run.txt ./
 RUN --mount=type=cache,id=apt-build,target=/var/cache/apt \
     mkdir -p /var/cache/apt/${TARGETARCH}${TARGETVARIANT}/archives/partial && \
     apt-get update && \
@@ -241,10 +252,8 @@ COPY vocalfusion/etc/mark2-microphone.service \
 # Enable i2c
 RUN echo 'i2c-dev' >> /etc/modules
 
-# Install DBus HAL
-COPY dbus-hal /usr/local/mycroft/mark-2/dbus-hal/
-RUN cd /usr/local/mycroft/mark-2/dbus-hal/ && \
-    ./install.sh
+# Copy HAL tools
+COPY --from=build-hal --chown=pi:pi /usr/local/mycroft/ /usr/local/mycroft/
 
 # Copy pre-built GUI files
 COPY --from=build-gui /usr/local/ /usr/
