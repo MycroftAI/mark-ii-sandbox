@@ -275,6 +275,11 @@ RUN gunzip --keep /opt/mycroft-dinkum/.venv/lib/python3.9/site-packages/mycroft_
 # Copy system files
 COPY files/ /
 
+# Install the Noto Sans font family using config from /etc
+ADD docker/build/mycroft/Font_NotoSans-hinted.tar.gz /usr/share/fonts/truetype/noto-sans/
+COPY docker/build/mycroft/install-fonts.sh ./
+RUN ./install-fonts.sh
+
 # Fix permissions
 RUN chown -R pi:pi /home/pi/
 

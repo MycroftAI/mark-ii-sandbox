@@ -24,13 +24,18 @@
 #
 # After running this, burn custom.img
 
-set -ex pipefail
+set -ex
 
 this_dir="$( cd "$( dirname "$0" )" && pwd )"
 
+if [ -z "$1" ]; then
+    image="${this_dir}/custom.img"
+else
+    image="$1"
+fi
+
 # custom_image_bytes=4096
-custom_image_bytes=8192
-image="${this_dir}/custom.img"
+custom_image_bytes=6144
 pi_dir="${this_dir}/raspberry-pi-os"
 
 function detach {

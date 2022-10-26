@@ -26,7 +26,13 @@ Once you've completed steps 1 and 2, you can run steps 3-5 after any changes to 
 
 This splits a Raspberry Pi OS image into boot/user partitions (`p1.tar` and `p2.tar` respectively). 
 It then runs the Docker build with the user partition (`p2.tar`) as the base file system, allowing for software to be installed, etc.
+
 Finally, `update-image.sh` recombines the original boot parition (`p1.tar`) with the result of the Docker build. This uses the files in the `boot` to overwrite `/boot` in the image (e.g., with `config.txt`).
+
+
+### Partition Size
+
+**NOTE**: depending on how much stuff you install during the Docker build, you may need to adjust the `raspberry-pi-os/partition_table.txt` file. The `size` of the second partition (`type=83`) may need to be increased before you run `update-image.sh`. Remember that this size is in *sectors* of 512 bytes. Lastly, ensure that the `custom_image_bytes` in `update-image.sh` is large enough to accomodate your new parition size.
 
 
 ## Installed Software
@@ -42,8 +48,30 @@ The following software is installed on top of the base Raspberry Pi OS:
     * `mark2-volume <percent>` lets you set the amplifier volume (0-100)
     * `mark2-buttons` prints on/off events for the 3 buttons and 1 switch
 * A service that runs `/usr/local/mycroft/mark-2/boot.sh` on boot
-    * Turns of the LEDS
+    * Turns off the LEDS
     * Sets fan to 50%
     * Sets volume to 60%
     
 Additionally, I2C and SPI are enabled by default (required for the Mark II hardware).
+
+
+## Docker Build
+
+Building requires [Docker BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/). This is used to build for the `arm64` platform as well as cache apt/python packages so they can be reused across multiple builds.
+
+To bootstrap your machine for the first build, ensure that you have qemu "binformat" support:
+
+``` sh
+sudo apt-get install binfmt-support
+```
+
+Then, create a Docker "builder" that supports multi-platform builds:
+
+``` sh
+docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+docker buildx create --use --name mybuilder
+docker buildx use mybuilder
+docker buildx inspect --bootstrap
+```
+
+After that, you should be able to run `make <TARGET>` to build one of the images (e.g., `make dinkum`).

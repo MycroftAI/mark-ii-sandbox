@@ -1,1 +1,4 @@
 git
+libespeak-ng1
+libportaudio2
+mpg123

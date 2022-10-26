@@ -58,19 +58,19 @@ RUN --mount=type=cache,id=apt-base-build,target=/var/cache/apt \
 # -----------------------------------------------------------------------------
 
 # Image where Mycroft GUI is built
-# FROM base-build as build-gui
+FROM base-build as build-gui
 
-# COPY mycroft-dinkum/services/gui/mycroft-gui/ ./mycroft-gui/
-# COPY docker/build/gui/build-mycroft-gui.sh ./
-# RUN ./build-mycroft-gui.sh
+COPY mycroft-dinkum/services/gui/mycroft-gui/ ./mycroft-gui/
+COPY docker/build/gui/build-mycroft-gui.sh ./
+RUN ./build-mycroft-gui.sh
 
-# COPY mycroft-dinkum/services/gui/lottie-qml/ ./lottie-qml/
-# COPY docker/build/gui/build-lottie-qml.sh ./
-# RUN ./build-lottie-qml.sh
+COPY mycroft-dinkum/services/gui/lottie-qml/ ./lottie-qml/
+COPY docker/build/gui/build-lottie-qml.sh ./
+RUN ./build-lottie-qml.sh
 
-# COPY mycroft-dinkum/services/gui/mycroft-gui-mark-2/ ./mycroft-gui-mark-2/
-# COPY docker/build/gui/build-mycroft-gui-mark-2.sh ./
-# RUN ./build-mycroft-gui-mark-2.sh
+COPY mycroft-dinkum/services/gui/mycroft-gui-mark-2/ ./mycroft-gui-mark-2/
+COPY docker/build/gui/build-mycroft-gui-mark-2.sh ./
+RUN ./build-mycroft-gui-mark-2.sh
 
 # -----------------------------------------------------------------------------
 
@@ -88,7 +88,23 @@ RUN cd /opt && \
 RUN --mount=type=cache,id=apt-build-core1,target=/var/cache/apt \
     --mount=type=cache,id=pip-build-core1,target=/root/.cache/pip \
     cd /opt/mycroft && \
-    CI=true bash dev_setup.sh --allow-root
+    CI=true bash dev_setup.sh --allow-root -sm
+
+# Install Mimic 3 plugin
+RUN --mount=type=cache,id=pip-build-hal,target=/root/.cache/pip \
+    /opt/mycroft/bin/mycroft-pip install --upgrade pip && \
+    /opt/mycroft/bin/mycroft-pip install mycroft-plugin-tts-mimic3[all]
+
+# -----------------------------------------------------------------------------
+
+# Image where XMOS/HAL services are built
+FROM base-build as build-hal
+
+COPY dbus-hal /usr/local/mycroft/mark-2/dbus-hal/
+
+RUN --mount=type=cache,id=pip-build-hal,target=/root/.cache/pip \
+    cd /usr/local/mycroft/mark-2/dbus-hal/ && \
+    ./install.sh
 
 # -----------------------------------------------------------------------------
 # Run
@@ -102,7 +118,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN echo "Dir::Cache var/cache/apt/${TARGETARCH}${TARGETVARIANT};" > /etc/apt/apt.conf.d/01cache
 
-COPY docker/packages-build.txt docker/packages-run.txt docker/packages-core1.txt ./
+COPY docker/packages-run.txt docker/packages-core1.txt ./
 RUN --mount=type=cache,id=apt-build,target=/var/cache/apt \
     mkdir -p /var/cache/apt/${TARGETARCH}${TARGETVARIANT}/archives/partial && \
     apt-get update && \
@@ -129,14 +145,12 @@ COPY vocalfusion/etc/mark2-microphone.service \
 # Enable i2c
 RUN echo 'i2c-dev' >> /etc/modules
 
-# Install DBus HAL
-COPY dbus-hal /usr/local/mycroft/mark-2/dbus-hal/
-RUN cd /usr/local/mycroft/mark-2/dbus-hal/ && \
-    ./install.sh
+# Copy HAL tools
+COPY --from=build-hal --chown=pi:pi /usr/local/mycroft/ /usr/local/mycroft/
 
 # Copy pre-built GUI files
-# COPY --from=build-gui /usr/local/ /usr/
-# COPY --from=build-gui /usr/lib/aarch64-linux-gnu/qt5/qml/ /usr/lib/aarch64-linux-gnu/qt5/qml/
+COPY --from=build-gui /usr/local/ /usr/
+COPY --from=build-gui /usr/lib/aarch64-linux-gnu/qt5/qml/ /usr/lib/aarch64-linux-gnu/qt5/qml/
 
 # Copy core1 code and virtual environment
 COPY --from=build-core1 --chown=pi:pi /opt/mycroft/ /opt/mycroft/
@@ -145,15 +159,20 @@ COPY --from=build-core1 --chown=pi:pi /opt/mycroft/ /opt/mycroft/
 COPY files/ /
 COPY files-core1/ /
 
+# Create directory for logs
+RUN mkdir -p /var/log/mycroft
+
 # Fix permissions
-RUN chown -R pi:pi /home/pi/
+RUN chown -R pi:pi /home/pi/ /var/log/mycroft/
 
 # Enable services
 RUN systemctl enable /etc/systemd/system/mark2-microphone.service && \
     systemctl enable /etc/systemd/system/mark2-hal.service && \
     systemctl enable /etc/systemd/system/mark2-boot.service && \
     systemctl enable /etc/systemd/system/mark2-core1.service && \
-    systemctl enable /etc/systemd/system/mark2-automount.service
+    systemctl enable /etc/systemd/system/mark2-plasma.service && \
+    systemctl enable /etc/systemd/system/mark2-automount.service && \
+    systemctl set-default graphical
 
 # Clean up
 RUN --mount=type=cache,id=apt-build,target=/var/cache/apt \

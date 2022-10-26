@@ -7,7 +7,6 @@ Type=forking
 User=pi
 WorkingDirectory=/opt/mycroft
 ExecStart=/opt/mycroft/start-mycroft.sh all
-ExecStartPost=/usr/bin/sleep 30 && /opt/mycroft/start-mycroft.sh restart voice
 ExecStop=/opt/mycroft/stop-mycroft.sh
 
 [Install]
