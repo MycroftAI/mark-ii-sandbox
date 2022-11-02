@@ -4,3 +4,4 @@ adafruit-circuitpython-pixelbuf
 dbus-next
 sdnotify~=0.3.0
 rpi_ws281x
+mycroft-messagebus-client==0.9.4

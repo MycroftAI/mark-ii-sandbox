@@ -83,7 +83,7 @@ RUN --mount=type=cache,id=apt-base-build,target=/var/cache/apt \
 
 # Install Mycroft
 RUN cd /opt && \
-    git clone --single-branch --branch dev 'https://github.com/MycroftAI/mycroft-core.git' mycroft
+    git clone --single-branch --branch mark-ii/latest 'https://github.com/MycroftAI/mycroft-core.git' mycroft
 
 RUN --mount=type=cache,id=apt-build-core1,target=/var/cache/apt \
     --mount=type=cache,id=pip-build-core1,target=/root/.cache/pip \
@@ -94,6 +94,12 @@ RUN --mount=type=cache,id=apt-build-core1,target=/var/cache/apt \
 RUN --mount=type=cache,id=pip-build-hal,target=/root/.cache/pip \
     /opt/mycroft/bin/mycroft-pip install --upgrade pip && \
     /opt/mycroft/bin/mycroft-pip install mycroft-plugin-tts-mimic3[all]
+
+# Install skills
+RUN mkdir -p /opt/mycroft/skills && \
+    cd /opt/mycroft/skills && \
+    git clone --single-branch --branch bugfix/resting-screen 'https://github.com/MycroftAI/skill-homescreen' homescreen && \
+    git clone --single-branch --branch bugfix/resting_screen 'https://github.com/mycroftai/skill-mark-2' mycroft-mark-2
 
 # -----------------------------------------------------------------------------
 
@@ -173,6 +179,10 @@ RUN systemctl enable /etc/systemd/system/mark2-microphone.service && \
     systemctl enable /etc/systemd/system/mark2-plasma.service && \
     systemctl enable /etc/systemd/system/mark2-automount.service && \
     systemctl set-default graphical
+
+# Service aliases
+RUN ln -s /etc/systemd/system/mark2-microphone.service /etc/systemd/system/mycroft-xmos.service && \
+    ln -s /etc/systemd/system/mark2-plasma.service /etc/systemd/system/mycroft-plasma.service
 
 # Clean up
 RUN --mount=type=cache,id=apt-build,target=/var/cache/apt \

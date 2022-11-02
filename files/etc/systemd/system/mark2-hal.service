@@ -3,7 +3,8 @@ Description=DBus server for hardware access
 
 [Service]
 Type=notify
-ExecStart=/usr/local/mycroft/mark-2/dbus-hal/.venv/bin/python3 /usr/local/mycroft/mark-2/dbus-hal/dbus_server.py
+ExecStart=/usr/local/mycroft/mark-2/dbus-hal/.venv/bin/python3 -m dbus_hal --websocket
+WorkingDirectory=/usr/local/mycroft/mark-2/dbus-hal
 Restart=always
 RestartSec=10
 TimeoutStartSec=60
