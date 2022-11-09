@@ -1,4 +1,4 @@
-# Mark II Lite
+# Mark II Sandbox
 
 Builds a working base image for the Mark II based on Raspberry Pi OS.
 
