@@ -15,9 +15,14 @@ Builds a working base image for the Mark II based on Raspberry Pi OS.
 
 1. Download/extract a Raspberry Pi 64-bit Lite image to the `raspberry-pi-os` directory
 2. In `raspberry-pi-os`, run `img2tar.py -i <img-file>` to create `p1.tar` and `p2.tar`
-3. In the root directory, run `make`
-4. Run `sudo ./update-image.sh`
-5. Burn `custom.img`
+3. Fetch submodules for build:
+   ```
+   git submodule init
+   git submodule update
+   ```
+4. In the root directory, run `make`
+5. Run `sudo ./update-image.sh`
+6. Burn `custom.img`
 
 Once you've completed steps 1 and 2, you can run steps 3-5 after any changes to the Dockerfile.
 
