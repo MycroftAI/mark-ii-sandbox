@@ -34,8 +34,7 @@ else
     image="$1"
 fi
 
-# custom_image_bytes=4096
-custom_image_bytes=6144
+custom_image_bytes=4096
 pi_dir="${this_dir}/raspberry-pi-os"
 
 function detach {
@@ -75,6 +74,10 @@ sudo umount "${mount_dir}"
 # Copy user partition
 sudo mkfs.ext4 "${lo_dev}p2"
 sudo mount "${lo_dev}p2" "${mount_dir}"
+# Resize partition to enable new files to be written
+sudo parted "${image}" resizepart 2 100%FREE
+sudo partprobe -s "${lo_dev}"
+sudo resize2fs "${lo_dev}p2"
 sudo tar xf "${this_dir}/mycroft.tar" -C "${mount_dir}"
 sudo umount "${mount_dir}"
 
