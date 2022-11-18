@@ -1,0 +1,20 @@
+;; This file was automatically generated and is for internal use only.
+;; It cannot be passed to the '--manifest' option.
+;; Run 'guix package --export-manifest' if you want to export a file
+;; suitable for '--manifest'.
+
+(manifest
+  (version 4)
+  (packages
+    (("phonetisaurus"
+      "0-1.f08d3df"
+      "out"
+      "/gnu/store/h6bzk7npwmil73mdx0gmmld5bf159yls-phonetisaurus-0-1.f08d3df")
+     ("kaldi"
+      "0-0.f6f4cca"
+      "out"
+      "/gnu/store/86zmcy2hiq0r5z2l8yx1g6cii50aybvf-kaldi-0-0.f6f4cca")
+     ("openfst"
+      "1.8.2"
+      "out"
+      "/gnu/store/x2h4ajz2xfhfb74r6d0yy332zin9wkw7-openfst-1.8.2"))))

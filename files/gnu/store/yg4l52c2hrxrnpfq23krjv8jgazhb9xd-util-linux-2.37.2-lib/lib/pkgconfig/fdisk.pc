@@ -1,0 +1,9 @@
+libdir=/gnu/store/yg4l52c2hrxrnpfq23krjv8jgazhb9xd-util-linux-2.37.2-lib/lib
+includedir=/gnu/store/yg4l52c2hrxrnpfq23krjv8jgazhb9xd-util-linux-2.37.2-lib/include
+
+Name: fdisk
+Description: fdisk library
+Version: 2.37.2
+Requires.private: uuid blkid
+Cflags: -I${includedir}/libfdisk
+Libs: -L${libdir} -lfdisk

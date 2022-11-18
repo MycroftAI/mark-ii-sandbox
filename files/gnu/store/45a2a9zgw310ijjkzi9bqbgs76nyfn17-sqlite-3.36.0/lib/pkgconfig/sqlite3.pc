@@ -1,0 +1,13 @@
+# Package Information for pkg-config
+
+prefix=/gnu/store/45a2a9zgw310ijjkzi9bqbgs76nyfn17-sqlite-3.36.0
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: SQLite
+Description: SQL database engine
+Version: 3.36.0
+Libs: -L${libdir} -lsqlite3
+Libs.private: -lm -ldl -lpthread 
+Cflags: -I${includedir}

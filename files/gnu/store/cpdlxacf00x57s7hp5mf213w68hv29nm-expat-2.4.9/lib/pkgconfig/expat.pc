@@ -1,0 +1,12 @@
+prefix=/gnu/store/cpdlxacf00x57s7hp5mf213w68hv29nm-expat-2.4.9
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: expat
+Version: 2.4.9
+Description: expat XML parser
+URL: https://libexpat.github.io/
+Libs: -L${libdir} -lexpat
+Libs.private: -lm
+Cflags: -I${includedir}

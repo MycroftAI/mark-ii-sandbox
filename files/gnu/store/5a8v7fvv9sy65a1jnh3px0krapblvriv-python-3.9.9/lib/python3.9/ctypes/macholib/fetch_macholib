@@ -1,0 +1,2 @@
+#!/gnu/store/lzf5zg0diw2bhh2qji4bl2v46wd8pylc-bash-minimal-5.1.8/bin/sh
+svn export --force http://svn.red-bean.com/bob/macholib/trunk/macholib/ .
