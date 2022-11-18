@@ -149,6 +149,7 @@ RUN --mount=type=cache,id=pip-build-dinkum,target=/root/.cache/pip \
     "${DINKUM_VENV}/bin/pip3" install ./plugins/hotword_precise/ && \
     "${DINKUM_VENV}/bin/pip3" install -f ./wheels/ ./plugins/stt_coqui/ && \
     "${DINKUM_VENV}/bin/pip3" install ./plugins/stt_vosk/ && \
+    "${DINKUM_VENV}/bin/pip3" install ./plugins/stt_grokotron/ && \
     "${DINKUM_VENV}/bin/pip3" install ./mimic3 && \
     "${DINKUM_VENV}/bin/pip3" install mycroft-plugin-tts-mimic3
 
@@ -279,6 +280,10 @@ COPY files/ /
 ADD docker/build/mycroft/Font_NotoSans-hinted.tar.gz /usr/share/fonts/truetype/noto-sans/
 COPY docker/build/mycroft/install-fonts.sh ./
 RUN ./install-fonts.sh
+
+# Train Grokotron
+RUN cd /opt/grokotron && \
+    ./train.sh sentences.ini
 
 # Fix permissions
 RUN chown -R pi:pi /home/pi/

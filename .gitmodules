@@ -1,3 +1,4 @@
 [submodule "mycroft-dinkum"]
 	path = mycroft-dinkum
 	url = https://github.com/mycroftai/mycroft-dinkum.git
+	branch = grokotron
