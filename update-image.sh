@@ -35,7 +35,7 @@ else
 fi
 
 # custom_image_bytes=4096
-custom_image_bytes=6144
+custom_image_bytes=7144
 pi_dir="${this_dir}/raspberry-pi-os"
 
 function detach {
